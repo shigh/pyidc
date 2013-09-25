@@ -34,7 +34,8 @@ def build_integration_matrix(n_points, as_np=True):
 
 _mat_cache = {}
 def integration_matrix(n_points):
-
+    """ Use sympy to build integration matrix
+    """
     if _mat_cache.has_key(n_points):
         return _mat_cache[n_points]
 
@@ -44,6 +45,8 @@ def integration_matrix(n_points):
     return M
 
 def interp_int(x_vals, y_vals):
+    """ Use integration matrix to interpolate diffs
+    """
     h = x_vals[1] - x_vals[0]
     M = integration_matrix(len(y_vals))
     mat_int  = h*M.dot(y_vals)

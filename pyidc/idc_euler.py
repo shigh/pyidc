@@ -4,7 +4,11 @@ from idc_utils import *
 from intmat import interp_int, integration_matrix
 
 def make_method(base, solver):
+    """ Combine an IDCBase derived class with a stepper
 
+    Returns a function that mimics an IDCBase derived class constructor
+    and returns a constructed object
+    """
     def make(f, ps, dtype=np.double):
         m = base(f, ps, dtype)
         m.solver = solver
@@ -13,6 +17,10 @@ def make_method(base, solver):
     return make
 
 class IDCBase(object):
+    """ Base class for IDC methods
+
+    Overide with correct and one_step methods.
+    """
 
     def __init__(self, f, ps, dtype=np.double):
         self.f  = f
@@ -24,6 +32,8 @@ class IDCBase(object):
         self.t_vals = t_vals
 
     def get_epi(self):
+        """ Return the integral of epsilon at each point
+        """
         _, rng, n_points = self.ps
         f = self.f
         eta_diff = self.eta - self.eta[0]
@@ -35,6 +45,10 @@ class IDCBase(object):
         return eta_diff - epi
 
     def predict(self):
+        """ Initial prediction.
+
+        Sets the result as eta.
+        """
         y0, rng, n_points = self.ps
         t0=rng[0]; h=self.h; f=self.f
         
@@ -48,6 +62,8 @@ class IDCBase(object):
         
 
 class IDCSingle(IDCBase):
+    """ For single functions (non-split)
+    """
 
     def correct(self):
         y0, rng, n_points = self.ps
@@ -68,10 +84,16 @@ class IDCSingle(IDCBase):
         self.eta = eta + y_vals
 
     def one_step(self, f, t0, y0, h):
+        """ Nothing special here
+        """
         return self.solver(f, t0, y0, h)
 
 
 class IDCSplit(IDCBase):        
+    """ For split functions. Base for concrete split clases
+
+    Use SplitFunction in the constructor
+    """
 
     def correct(self):
         y0, rng, n_points = self.ps
@@ -95,7 +117,8 @@ class IDCSplit(IDCBase):
 
     
 class IDCLT(IDCSplit):
-
+    """ Lie-Trotter splitting
+    """
     def one_step(self, f, t0, y0, h):
         U = self.solver(f[0], t0, y0, h)
         U = self.solver(f[1], t0, U, h)
@@ -103,6 +126,8 @@ class IDCLT(IDCSplit):
 
 
 class IDCSTR(IDCSplit):
+    """ Strang splitting
+    """
     
     def one_step(self, f, t0, y0, h):
         U = self.solver(f[0], t0, y0, h/2.)
@@ -110,12 +135,17 @@ class IDCSTR(IDCSplit):
         U = self.solver(f[0], t0+h/2., U, h/2.)
         return U
 
-        
+
+# First order forward and backward euler
 IDCFE = make_method(IDCSingle, fe)
 IDCBE = make_method(IDCSingle, be)
 
+# First order split forward and backward euler
 IDCFELT = make_method(IDCSTR, fe)
 IDCBELT = make_method(IDCSTR, be)
 
+# Second order Strang explicit and implicit
+# Not actually fwd or bcwd euler, I need to
+# change the names later
 IDCFESTR = make_method(IDCSTR, rk2)
 IDCBESTR = make_method(IDCSTR, lobattoIIIA)
