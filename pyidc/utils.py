@@ -145,6 +145,9 @@ class SplitFunction(object):
     def __getitem__(self, i):
         return self.funcs[i]
 
+    def __len__(self):
+        return len(self.funcs)
+
 class InterpFunc(object):
     """ Simple interpolate wrapper
     """
