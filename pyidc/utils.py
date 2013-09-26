@@ -154,10 +154,14 @@ class InterpFunc(object):
 
     def __init__(self, t_vals, y_vals):
         self.deg = len(y_vals) - 1
-        self.p = np.polyfit(t_vals, y_vals, self.deg)
+        self.shift = np.min(t_vals)
+        self.scale = 1./(np.max(t_vals) - np.min(t_vals))
+        scaled_t_vals = (t_vals - self.shift)*self.scale
+        self.p = np.polyfit(scaled_t_vals, y_vals, self.deg)
 
     def eval(self, t):
-        return np.polyval(self.p, t)
+        scaled_t = (t - self.shift)*self.scale
+        return np.polyval(self.p, scaled_t)
 
     def __call__(self, t):
         return self.eval(t)
