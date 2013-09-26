@@ -1,6 +1,6 @@
 import numpy as np
 from collections import namedtuple
-from idc_utils import *
+from utils import *
 from intmat import interp_int, integration_matrix
 
 def make_method(base, solver):
