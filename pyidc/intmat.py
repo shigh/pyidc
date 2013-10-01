@@ -4,6 +4,8 @@ from sympy import Symbol, Matrix, MatrixSymbol
 from sympy.abc import x, h, t
 
 def c_list(t, t_vals):
+    """ List of components in the polynomial expansion
+    """
     n_points = len(t_vals)
     out = []
     for j in range(n_points):
@@ -17,6 +19,8 @@ def c_list(t, t_vals):
     return out
 
 def build_integration_matrix(n_points, as_np=True):
+    """ The integral from t_0 to t_n
+    """
     c_vals = c_list(t, [i*h for i in range(n_points)])
     c_vals = [c.expand() for c in c_vals]
     c_vals = [c.integrate(t) for c in c_vals]
@@ -32,6 +36,7 @@ def build_integration_matrix(n_points, as_np=True):
     else:
         return M
 
+# Only calculate int mats once        
 _mat_cache = {}
 def integration_matrix(n_points):
     """ Use sympy to build integration matrix

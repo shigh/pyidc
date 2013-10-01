@@ -13,6 +13,8 @@ def one_d_poisson(n, h, include_boundary=True):
     You likely want to set h = dt/dx**2
     """
     a = np.zeros((n,n))
+
+    # This is a mess, cleanup
     if include_boundary:
         np.fill_diagonal(a[1:-1,1:-1], -2.)
         np.fill_diagonal(a[1:-1,:-1], 1.)
@@ -85,15 +87,21 @@ class SplitFunction(object):
         self.funcs = funcs
 
     def f(self, t, y):
+        """ Evaluate the sum of all component functions
+        """
         out = self.funcs[0](t, y)
         for func in self.funcs[1:]:
             out += func(t, y)
         return out
 
     def __call__(self, t, y):
+        """ Mimic the behavior of a single function
+        """
         return self.f(t, y)
 
     def __getitem__(self, i):
+        """ Mimic the behavior of a list of functions
+        """
         return self.funcs[i]
 
     def __len__(self):
@@ -101,6 +109,8 @@ class SplitFunction(object):
 
 class InterpFunc(object):
     """ Simple interpolate wrapper
+
+    Scaled to [0,1]
     """
 
     def __init__(self, t_vals, y_vals):
