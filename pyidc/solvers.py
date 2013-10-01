@@ -1,32 +1,13 @@
 from utils import *
 
-def idc_order(f, ps_base, method, order, actual, pows, ret_errs=False, dtype=np.double, n_corr=None):
-    """ Estimate order of IDC method
-    """
-    ps = [ProblemSetup(ps_base.y0, ps_base.rng, 2**k) for k in pows]
-    sols = idc_solve(f, ps, method, order, dtype, n_corr)
-    errs = np.log2([abs(actual - sol[-1]) for sol in sols])
-    
-    A = np.ones((len(pows), 2))
-    A[:,0] = pows
-    slope = np.linalg.lstsq(A, errs)[0][0]
-    
-    if ret_errs:
-        return (-slope, errs)
-    else:
-        return -slope    
-
 class IDCSolver(object):
 
-    def __init__(self, f, ps, method, order, dtype=np.double, n_corr=None):
-        self.f      = f
-        self.ps     = ps
+    def __init__(self, method, order, dtype=np.double):
         self.method = method
         self.order  = order
         self.dtype  = dtype
-        self.n_corr = n_corr
 
-    def solve(self):
+    def solve(self, f, ps, n_corr=None):
         """ A single time step of IDC
         """
 
@@ -45,4 +26,22 @@ class IDCSolver(object):
             y_vals[i+1] = m.eta[-1]
 
         return y_vals    
+
+def idc_order(f, ps, method, order, actual, pows, ret_errs=False):
+    """ Estimate order of IDC method
+    """
+    ps = [ProblemSetup(ps_base.y0, ps_base.rng, 2**k) for k in pows]
+    solver = IDCSolver(method, order, dtype)
+    sols = idc_solve(f, ps, method, order, dtype, n_corr)
+    errs = np.log2([abs(actual - sol[-1]) for sol in sols])
+    
+    A = np.ones((len(pows), 2))
+    A[:,0] = pows
+    slope = np.linalg.lstsq(A, errs)[0][0]
+    
+    if ret_errs:
+        return (-slope, errs)
+    else:
+        return -slope    
+
         
