@@ -3,7 +3,7 @@ from collections import namedtuple
 from utils import *
 from intmat import interp_int, integration_matrix
 
-def make_method(base, solver):
+def make_method(base, stepper):
     """ Combine an IDCBase derived class with a stepper
 
     Returns a function that mimics an IDCBase derived class constructor
@@ -11,7 +11,7 @@ def make_method(base, solver):
     """
     def make(f, ps, dtype=np.double):
         m = base(f, ps, dtype)
-        m.solver = solver
+        m.stepper = stepper
         return m
 
     return make
@@ -86,7 +86,7 @@ class IDCSingle(IDCBase):
     def one_step(self, f, t0, y0, h):
         """ Nothing special here
         """
-        return self.solver(f, t0, y0, h)
+        return self.stepper(f, t0, y0, h)
 
 
 class IDCSplit(IDCBase):        
@@ -120,8 +120,8 @@ class IDCLT(IDCSplit):
     """ Lie-Trotter splitting
     """
     def one_step(self, f, t0, y0, h):
-        U = self.solver(f[0], t0, y0, h)
-        U = self.solver(f[1], t0, U, h)
+        U = self.stepper(f[0], t0, y0, h)
+        U = self.stepper(f[1], t0, U, h)
         return U
 
 
@@ -130,9 +130,9 @@ class IDCSTR(IDCSplit):
     """
     
     def one_step(self, f, t0, y0, h):
-        U = self.solver(f[0], t0, y0, h/2.)
-        U = self.solver(f[1], t0, U, h)
-        U = self.solver(f[0], t0+h/2., U, h/2.)
+        U = self.stepper(f[0], t0, y0, h/2.)
+        U = self.stepper(f[1], t0, U, h)
+        U = self.stepper(f[0], t0+h/2., U, h/2.)
         return U
 
 
